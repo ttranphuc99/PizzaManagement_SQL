@@ -157,3 +157,8 @@ WHERE voucherID not in (
 	WHERE V.voucherID = O.voucherID AND MONTH(createdTime) = 11 AND YEAR(createdTime) = 2018
 )
 
+--14. Voucher nào còn hạn sử dụng
+SELECT voucherID, voucherCode, voucherName, voucherQuantity, createdDate, endedDate
+FROM Vouchers
+WHERE endedDate > GETDATE()
+
