@@ -388,5 +388,24 @@ END
 CREATE TRIGGER checkProduct ON Products AFTER INSERT, UPDATE
 AS
 BEGIN
-	
+	DECLARE @proType nvarchar(20) = (SELECT proType FROM inserted)
+	DECLARE @proDes nvarchar(max) = (SELECT proDescrt FROM inserted)
+	DECLARE @proKind nvarchar(20) = (SELECT proKind FROM inserted)
+
+	DECLARE @flag bit = 0
+
+	if (@proType = 'pizza')
+	begin
+		if (@proDes is null) SET @flag = 1
+	end
+	else if (@proType != 'sides')
+	begin
+		if (@proKind is not null) SET @flag = 1
+	end
+
+	if (@flag = 1) 
+	begin
+		RAISERROR('Invalid Product', 16, 1)
+		ROLLBACK TRAN
+	end
 END
