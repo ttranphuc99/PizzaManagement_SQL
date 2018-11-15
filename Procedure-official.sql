@@ -112,3 +112,59 @@ BEGIN
 END
 
 EXEC viewHistoryConfirm 3
+
+--4. kiểm tra orderdetail hợp lệ
+CREATE PROC checkOrderDetail
+AS
+BEGIN
+	DECLARE @proID int, @quantity int, @isCheese bit, @size int, @defaultPrice float, @detailID int
+	DECLARE ptDetail CURSOR FOR SELECT proID, detailQuantity, isCheese, proSize, subPrice, detailID FROM OrderDetail
+
+	OPEN ptDetail
+	PRINT('ORDERDETAIL INVALID:')
+
+	FETCH NEXT FROM ptDetail INTO @proID, @quantity, @isCheese, @size, @defaultPrice, @detailID
+
+	WHILE (@@FETCH_STATUS = 0)
+	BEGIN
+		DECLARE @curPrice float = (SELECT proPrice FROM Products WHERE proID = @proID)
+		DECLARE @proType nvarchar(20) = (SELECT proType FROM Products WHERE proID = @proID)
+		DECLARE @proKind nvarchar(20) = (SELECT proKind FROM Products WHERE proID = @proID)
+
+		if (@proType = 'pizza')
+		begin
+			--update size
+			if (@proKind = 'signature')
+			begin
+				if (@size = 12) SET @curPrice += 100000
+			end
+			else if (@proKind = 'premium')
+			begin
+				if (@size = 9) SET @curPrice += 70000
+				else if (@size = 12) SET @curPrice += 150000
+			end
+			else if (@proKind = 'favorite')
+			begin
+				if (@size = 9) SET @curPrice += 70000
+				else if (@size = 12) SET @curPrice += 60000
+			end
+
+			--update cheese
+			if (@isCheese = 1) SET @curPrice += 20000 
+		end
+
+		SET @curPrice *= @quantity
+
+		if (@curPrice != @defaultPrice) 
+		begin
+			PRINT('DETAIL ID: ' +CONVERT(varchar,@detailID)+ ' PRICE IN RECORD: ' +CONVERT(varchar,@defaultPrice)+ ' CORRECT PRICE: ' +CONVERT(varchar,@curPrice))
+		end 
+
+		FETCH NEXT FROM ptDetail INTO @proID, @quantity, @isCheese, @size, @defaultPrice, @detailID
+	END
+
+	CLOSE ptDetail
+	DEALLOCATE ptDetail
+END
+
+EXEC checkOrderDetail
