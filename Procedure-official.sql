@@ -114,7 +114,7 @@ END
 EXEC viewHistoryConfirm 3
 
 --4. kiểm tra orderdetail hợp lệ
-CREATE PROC checkOrderDetail
+ALTER PROC checkOrderDetail
 AS
 BEGIN
 	DECLARE @proID int, @quantity int, @isCheese bit, @size int, @defaultPrice float, @detailID int
